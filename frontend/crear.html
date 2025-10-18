@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Mueble</title>
+    <link rel="icon" href="/static/favicon.ico">
+</head>
+<body>
+    <h1>Crear Mueble</h1>
+
+    <!-- Formulario para crear un nuevo mueble -->
+    <form id="form-crear">
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required><br>
+
+        <label>Descripción:</label>
+        <input type="text" name="descripcion"><br>
+
+        <label>Precio:</label>
+        <input type="number" name="precio" step="0.01" required><br>
+
+        <button type="submit">Crear</button>
+    </form>
+
+    <a href="index.html">Volver</a>
+
+    <!-- Mensaje para mostrar exito o error -->
+    <p id="mensaje" style="display:none; font-weight:bold;"></p>
+
+    <script>
+        // URL base de la API FastAPI
+        const API_URL = "http://localhost:8000";
+
+        // Referencias al formulario y al elemento de mensaje
+        const form = document.getElementById("form-crear");
+        const mensaje = document.getElementById("mensaje");
+
+        // Evento que se dispara al enviar el formulario
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault(); // Evita que la página se recargue
+
+            // Recoge los datos del formulario
+            const formData = new FormData(form);
+
+            try {
+                // Enviar los datos a la API usando POST
+                const response = await fetch(`${API_URL}/muebles`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                // Si la respuesta es correcta
+                if (response.ok) {
+                    mensaje.textContent = "Producto creado";
+                    mensaje.style.color = "green";
+                    mensaje.style.display = "block";
+                    form.reset(); // Limpiar el formulario
+                } else {
+                    // Si hubo un error en la creación
+                    mensaje.textContent = "Error, no se pudo crear el producto";
+                    mensaje.style.color = "red";
+                    mensaje.style.display = "block";
+                }
+            } catch {
+                // Si no se pudo conectar con el servidor
+                mensaje.textContent = "Error, no se conectó al servidor";
+                mensaje.style.color = "orange";
+                mensaje.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>
+

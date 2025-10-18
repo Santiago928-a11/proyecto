@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  fastapi_muebles:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fastapi_muebles
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql_muebles
+    environment:
+      - DB_HOST=mysql_muebles
+      - DB_PORT=3306
+      - DB_USER=usuario
+      - DB_PASSWORD=contraseña
+      - DB_NAME=muebles
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "8080:80"
+
+  mysql_muebles:
+    image: mysql:8.0
+    container_name: mysql_muebles
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  
+
+volumes:
+  db_data:
+
+
+
+
+
+

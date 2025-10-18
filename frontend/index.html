@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Muebles</title>
+    <link rel="icon" href="/static/favicon.ico">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+        }
+        h1 { 
+            margin-top: 30px; 
+        }
+        /* Contenedor de la barra de progreso */
+        #progress-container{
+            width: 100%; max-width: 400px; height: 25px;
+            background: #ddd; border-radius: 10px;
+            overflow: hidden; margin-top: 10px; display: none;
+        }
+        /* Barra de progreso que se llena */
+        #progress-bar{ 
+            height: 100%; 
+            width: 0%; 
+            background: linear-gradient(90deg, #00b894, #0984e3); 
+            transition: width 0.2s ease; 
+        }
+        /* Mensaje de resultado de la carga */
+        #resultado{ 
+            margin-top: 10px; 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Muebles</h1>
+    <!-- Enlace para agregar un nuevo mueble -->
+    <a href="crear.html">Agregar Mueble</a>
+    <!-- Lista donde se mostrarán los muebles -->
+    <ul id="muebles-list"></ul>
+
+    <h1>Carga XLS Masiva</h1>
+    <!-- Formulario para carga masiva de archivos Excel -->
+    <form id="form-carga" enctype="multipart/form-data">
+        <input type="file" id="archivo" name="file" accept=".xls,.xlsx" required>
+        <button type="submit">Cargar</button>
+    </form>
+
+    <!-- Barra de progreso y mensaje de resultado -->
+    <div id="progress-container"><div id="progress-bar"></div></div>
+    <p id="resultado"></p>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+
+        // Función para listar todos los muebles y mostrarlos en la lista
+        async function listarMuebles() {
+            try {
+                const res = await fetch(`${API_URL}/muebles`);
+                const data = await res.json();
+                const list = document.getElementById("muebles-list");
+                list.innerHTML = ""; // Limpiar lista antes de agregar
+
+                data.forEach(m => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        ${m.id} - ${m.nombre} - ${m.descripcion} - $${m.precio.toFixed(2)}
+                        <a href="editar.html?id=${m.id}">Editar</a>
+                        <button class="btn-borrar" data-id="${m.id}">Borrar</button>
+                    `;
+                    list.appendChild(li);
+                });
+
+                // Agregar evento a botones de borrar después de crear los li
+                document.querySelectorAll(".btn-borrar").forEach(btn => {
+                    btn.addEventListener("click", async () => {
+                        const id = btn.getAttribute("data-id");
+                        if (!confirm(`¿Seguro que quieres borrar el mueble ${id}?`)) return;
+
+                        try {
+                            const res = await fetch(`${API_URL}/muebles/${id}`, { method: "DELETE" });
+                            if (res.ok) {
+                                alert("Mueble eliminado correctamente");
+                                listarMuebles(); // Refresca la lista
+                            } else {
+                                const data = await res.json();
+                                alert("Error: " + (data.detail || "No se pudo eliminar"));
+                            }
+                        } catch {
+                            alert("Error al conectar con el servidor");
+                        }
+                    });
+                });
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Llamada inicial para cargar la lista
+        listarMuebles();
+
+        // Manejo del formulario de carga masiva
+        document.getElementById("form-carga").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const archivo = document.getElementById("archivo").files[0];
+            if (!archivo) return;
+
+            const formData = new FormData();
+            formData.append("file", archivo);
+
+            const progressContainer = document.getElementById("progress-container");
+            const progressBar = document.getElementById("progress-bar");
+            const resultado = document.getElementById("resultado");
+
+            progressContainer.style.display = "block";
+            progressBar.style.width = "0%";
+            resultado.innerText = "";
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", `${API_URL}/muebles/carga_masiva`, true);
+
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percent = (event.loaded / event.total) * 100;
+                    progressBar.style.width = percent.toFixed(0) + "%";
+                }
+            };
+
+            xhr.onload = function() {
+                progressBar.style.width = "100%";
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    resultado.innerText = data.mensaje || "Carga completa";
+                    resultado.style.color = "green";
+                    listarMuebles();
+                } else {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        resultado.innerText = data.detail || "Error al cargar el archivo";
+                    } catch {
+                        resultado.innerText = "Error en el servidor";
+                    }
+                    resultado.style.color = "red";
+                }
+                setTimeout(() => progressContainer.style.display = "none", 1000);
+            };
+
+            xhr.onerror = function() {
+                resultado.innerText = "Error en la conexión con el servidor";
+                resultado.style.color = "red";
+                progressContainer.style.display = "none";
+            };
+
+            xhr.send(formData);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
