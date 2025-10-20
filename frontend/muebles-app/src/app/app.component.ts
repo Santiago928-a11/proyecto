@@ -9,6 +9,6 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  // Título de la aplicación, usado en la plantilla (si se muestra).
-  title = 'muebles-app';
+  // Título de la aplicación, usado en la plantilla.
+  title = 'Proyecto Muebles';
 }
