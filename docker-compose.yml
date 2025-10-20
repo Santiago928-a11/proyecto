@@ -20,7 +20,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend/muebles-app
       dockerfile: Dockerfile
     container_name: frontend
     restart: always
