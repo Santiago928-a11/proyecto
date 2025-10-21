@@ -25,7 +25,7 @@ services:
     container_name: frontend
     restart: always
     ports:
-      - "8080:80"
+      - "8080:4200"
 
   mysql_muebles:
     image: mysql:8.0

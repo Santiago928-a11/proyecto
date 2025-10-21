@@ -11,7 +11,7 @@ export interface Mueble {
 
 @Injectable({ providedIn: 'root' })
 export class MueblesService {
-  private API_URL = '/muebles';
+  private API_URL = 'http://localhost:8000/muebles';
   constructor(private http: HttpClient) {}
 
   getMuebles(): Observable<Mueble[]> {
