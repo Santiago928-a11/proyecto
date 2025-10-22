@@ -1,46 +1,59 @@
 version: '3.9'
 
 services:
-  fastapi_muebles:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: fastapi_muebles
-    restart: always
-    ports:
-      - "8000:8000"
-    depends_on:
-      - mysql_muebles
-    environment:
-      - DB_HOST=mysql_muebles
-      - DB_PORT=3306
-      - DB_USER=usuario
-      - DB_PASSWORD=contraseña
-      - DB_NAME=muebles
-
-  frontend:
-    build:
-      context: ./frontend/muebles-app
-      dockerfile: Dockerfile
-    container_name: frontend
-    restart: always
-    ports:
-      - "8080:4200"
-
   mysql_muebles:
     image: mysql:8.0
     container_name: mysql_muebles
     restart: always
     env_file:
       - .env
-    ports:
-      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql  
+    networks:
+      - red_backend_db
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  fastapi_muebles:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fastapi_muebles
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      mysql_muebles:
+        condition: service_healthy
+    networks:
+      - red_backend_db
+      - red_frontend_backend
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+
+  frontend_muebles:
+    build:
+      context: ./frontend/muebles-app
+      dockerfile: Dockerfile
+    container_name: frontend_muebles
+    restart: always
+    ports:
+      - "8080:4200"
+    networks:
+      - red_frontend_backend
 
 volumes:
   db_data:
+networks:
+  red_backend_db:
+    internal: true
+  red_frontend_backend:
+    driver: bridge
 
 
 
