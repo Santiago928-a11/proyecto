@@ -1,0 +1,23 @@
+<div class="card">
+  <h1>Crear Mueble</h1>
+  <form #f="ngForm" (ngSubmit)="crearMueble(f)">
+    <div class="form-group">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" name="nombre" [(ngModel)]="mueble.nombre" required />
+    </div>
+
+    <div class="form-group">
+      <label for="descripcion">Descripción:</label>
+      <textarea id="descripcion" name="descripcion" [(ngModel)]="mueble.descripcion" rows="3"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="precio">Precio:</label>
+      <input type="number" id="precio" name="precio" [(ngModel)]="mueble.precio" step="0.01" required />
+    </div>
+
+    <button type="submit" class="btn-crear">Crear</button>
+    <p class="mensaje">{{ mensaje }}</p>
+    <a routerLink="/" class="btn-volver">Volver</a>
+  </form>
+</div>

@@ -1,0 +1,35 @@
+<div class="card muebles-list">
+  <h1>Lista de Muebles</h1>
+  <a routerLink="/crear" class="btn-agregar">Agregar Mueble</a>
+
+  <table class="tabla-muebles">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Precio</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let m of muebles">
+        <td>{{ m.id }}</td>
+        <td>{{ m.nombre }}</td>
+        <td>{{ m.descripcion }}</td>
+        <td>${{ m.precio | number:'1.2-2' }}</td>
+        <td class="acciones">
+          <a [routerLink]="['/editar', m.id]" class="btn-editar">Editar</a>
+          <button (click)="borrarMueble(m.id!)" class="btn-borrar">Borrar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h1>Carga XLS</h1>
+  <input type="file" (change)="onFileSelect($event)" class="file-input" />
+  <div *ngIf="progreso > 0" class="progreso">Progreso: {{ progreso }}%</div>
+  <p class="mensaje">{{ mensaje }}</p>
+</div>
