@@ -28,8 +28,52 @@
 </div>
 
 <div class="card">
-  <h1>Carga XLS</h1>
+  <h1>Carga Excel</h1>
   <input type="file" (change)="onFileSelect($event)" class="file-input" />
+
   <div *ngIf="progreso > 0" class="progreso">Progreso: {{ progreso }}%</div>
   <p class="mensaje">{{ mensaje }}</p>
 </div>
+
+<div class="modal" *ngIf="mostrarModal">
+  <div class="modal-contenido">
+    <span class="cerrar" (click)="cerrarModal()">&times;</span>
+    <h2>Vista previa de hojas</h2>
+
+    <div *ngFor="let hoja of hojasValidasPreview" class="hoja-preview">
+      <h3>
+        <label>
+          <input 
+            type="checkbox" 
+            [value]="hoja.nombre" 
+            (change)="toggleHojaSeleccionada(hoja.nombre, $event)">
+          {{ hoja.nombre }}
+        </label>
+      </h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th *ngFor="let key of hoja.datos[0] | keyvalue">{{ key.key }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let fila of hoja.datos">
+            <td *ngFor="let valor of fila | keyvalue">{{ valor.value }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button 
+      (click)="subirHojasSeleccionadas()" 
+      class="btn-agregar" 
+      style="margin-top: 1rem;">
+      Subir hojas seleccionadas
+    </button>
+  </div>
+</div>
+
+
+
+

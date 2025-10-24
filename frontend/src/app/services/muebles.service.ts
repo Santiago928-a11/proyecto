@@ -42,4 +42,20 @@ export class MueblesService {
       observe: 'events'
     });
   }
+
+  analizarExcel(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.API_URL}/analizar_excel`, formData);
+  }
+
+  cargaMasivaHojas(file: File, hojas: string[]): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    hojas.forEach(h => formData.append('hojas', h));
+    return this.http.post(`${this.API_URL}/carga_masiva_hojas`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
 }

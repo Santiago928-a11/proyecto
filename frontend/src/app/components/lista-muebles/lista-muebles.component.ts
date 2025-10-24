@@ -1,35 +1,37 @@
 import { Component, OnInit } from '@angular/core';
 import { MueblesService, Mueble } from '../../services/muebles.service';
 import { HttpEventType } from '@angular/common/http';
+import * as XLSX from 'xlsx';
 
 @Component({
-  selector: 'app-lista-muebles', 
+  selector: 'app-lista-muebles',
   templateUrl: './lista-muebles.component.html',
   styleUrls: ['./lista-muebles.component.css']
 })
 
-// Componente encargado de mostrar la lista de muebles, permitir su eliminación
-// y gestionar la carga masiva de datos desde un archivo XLS.
 export class ListaMueblesComponent implements OnInit {
-  // Arreglo que almacena la lista de muebles obtenida del backend.
   muebles: Mueble[] = [];
-
-  // Mensaje informativo que muestra el resultado de las operaciones (éxito o error).
   mensaje = '';
-
-  // Porcentaje de progreso durante la carga de archivos XLS.
   progreso = 0;
 
-  // Constructor: inyecta el servicio de muebles para interactuar con el backend.
+  hojasDisponibles: string[] = [];
+  hojasSeleccionadas: string[] = [];
+  archivo: File | null = null;
+
+  // vista previa de datos
+  vistaPrevia: any[] = [];
+  hojaVistaPrevia: string | null = null;
+
+  mostrarModal = false;
+  hojasValidasPreview: { nombre: string, datos: any[] }[] = [];
+
+
   constructor(private mueblesService: MueblesService) {}
 
-  // ngOnInit(): método del ciclo de vida de Angular, se ejecuta al iniciar el componente.
-  // Llama a la función que carga los muebles desde el backend.
   ngOnInit() {
     this.cargarMuebles();
   }
 
-  // cargarMuebles(): obtiene la lista de muebles desde el backend y la almacena en el arreglo "muebles".
   cargarMuebles() {
     this.mueblesService.getMuebles().subscribe({
       next: data => (this.muebles = data),
@@ -37,8 +39,6 @@ export class ListaMueblesComponent implements OnInit {
     });
   }
 
-  // borrarMueble(): elimina un mueble según su ID luego de una confirmación del usuario.
-  // Si la operación es exitosa, recarga la lista de muebles.
   borrarMueble(id: number) {
     if (!confirm(`¿Seguro que quieres borrar ${id}?`)) return;
     this.mueblesService.deleteMueble(id).subscribe({
@@ -50,24 +50,119 @@ export class ListaMueblesComponent implements OnInit {
     });
   }
 
-  // onFileSelect(): maneja la selección de un archivo XLS y envía el archivo al backend.
-  // Actualiza el progreso de carga y muestra mensajes de estado.
   onFileSelect(event: any) {
     const file = event.target.files[0];
     if (!file) return;
+    this.archivo = file;
+    this.hojasDisponibles = [];
+    this.hojasSeleccionadas = [];
     this.progreso = 0;
     this.mensaje = '';
+    this.vistaPrevia = [];
+    this.hojaVistaPrevia = null;
+    this.hojasValidasPreview = [];
 
-    this.mueblesService.cargaMasiva(file).subscribe({
-      next: (event) => {
+    this.mueblesService.analizarExcel(file).subscribe({
+      next: (res: any) => {
+        this.hojasDisponibles = res.hojas_validas;
+        if (this.hojasDisponibles.length > 0) {
+          this.leerTodasLasHojas(file, this.hojasDisponibles);
+        }
+      },
+      error: () => {
+        this.mensaje = 'Error al analizar el archivo';
+      }
+    });
+  }
+
+  leerTodasLasHojas(file: File, hojas: string[]) {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+
+      this.hojasValidasPreview = hojas.map(hoja => {
+        const sheet = workbook.Sheets[hoja];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        return {
+          nombre: hoja,
+          datos: jsonData.slice(0, 10) 
+        };
+      });
+      this.mostrarModal = true;
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  toggleHojaSeleccionada(hoja: string, event: any) {
+    if (event.target.checked) {
+      if (!this.hojasSeleccionadas.includes(hoja)) {
+        this.hojasSeleccionadas.push(hoja);
+      }
+      this.mostrarVistaPrevia(hoja); 
+    } else {
+      this.hojasSeleccionadas = this.hojasSeleccionadas.filter(h => h !== hoja);
+      if (this.hojaVistaPrevia === hoja) {
+        this.vistaPrevia = [];
+        this.hojaVistaPrevia = null;
+      }
+    }
+  }
+
+  mostrarVistaPrevia(hoja: string) {
+    if (!this.archivo) return;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[hoja];
+      if (!sheet) return;
+
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      this.vistaPrevia = jsonData.slice(0, 5); 
+      this.hojaVistaPrevia = hoja;
+    };
+    reader.readAsArrayBuffer(this.archivo);
+  }
+
+  subirHojasSeleccionadas() {
+    if (!this.archivo || this.hojasSeleccionadas.length === 0) {
+      this.mensaje = 'Seleccione al menos una hoja para subir';
+      return;
+    }
+
+    this.progreso = 0;
+    this.mueblesService.cargaMasivaHojas(this.archivo, this.hojasSeleccionadas).subscribe({
+      next: event => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.progreso = Math.round((event.loaded / event.total) * 100);
         } else if (event.type === HttpEventType.Response) {
           this.mensaje = 'Carga completa';
           this.cargarMuebles();
+
+          this.hojasDisponibles = [];
+          this.hojasSeleccionadas = [];
+          this.archivo = null;
+          this.vistaPrevia = [];
+          this.hojasValidasPreview = [];
+          this.mostrarModal = false; 
+          this.progreso = 0;
+
+          const input = document.querySelector('.file-input') as HTMLInputElement;
+          if (input) input.value = '';
         }
       },
-      error: () => (this.mensaje = 'Error, no se pudo subir el archivo')
+      error: () => {
+        this.mensaje = 'Error, no se pudo subir el archivo';
+        this.mostrarModal = false; 
+      }
     });
   }
+
+
+  cerrarModal() {
+    this.mostrarModal = false;
+  }
 }
+

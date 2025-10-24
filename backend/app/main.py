@@ -5,6 +5,7 @@ from .models import Mueble
 import logging
 import pandas as pd
 import uvicorn
+from typing import List
 
 # Crear instancia de FastAPI con título
 app = FastAPI(title="Muebles")
@@ -91,6 +92,50 @@ async def carga_masiva(file: UploadFile = File(...)):
             mueble = Mueble(id=None, nombre=fila["nombre"], descripcion=fila["descripcion"], precio=float(fila["precio"]))
             crear_mueble(mueble)
             creados += 1
+
+        return {"mensaje": f"Se crearon {creados} muebles correctamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {e}")
+
+@app.post("/muebles/analizar_excel")
+async def analizar_excel(file: UploadFile = File(...)):
+    """
+    Analiza un archivo Excel y devuelve las hojas que tienen las columnas requeridas.
+    """
+    try:
+        xls = pd.ExcelFile(file.file)
+        columnas_req = {"nombre", "descripcion", "precio"}
+        hojas_validas = []
+
+        for hoja in xls.sheet_names:
+            df = pd.read_excel(xls, sheet_name=hoja)
+            if columnas_req.issubset(df.columns) and not df.empty:
+                hojas_validas.append(hoja)
+
+        if not hojas_validas:
+            raise HTTPException(status_code=400, detail="Ninguna hoja válida encontrada")
+        
+        return {"hojas_validas": hojas_validas}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {e}")
+
+@app.post("/muebles/carga_masiva_hojas")
+async def carga_masiva_hojas(file: UploadFile = File(...), hojas: List[str] = Form(...)):
+    """
+    Crea muebles solo de las hojas seleccionadas.
+    """
+    try:
+        xls = pd.ExcelFile(file.file)
+        creados = 0
+
+        for hoja in hojas:
+            if hoja not in xls.sheet_names:
+                continue
+            df = pd.read_excel(xls, sheet_name=hoja)
+            for _, fila in df.iterrows():
+                mueble = Mueble(id=None, nombre=fila["nombre"], descripcion=fila["descripcion"], precio=float(fila["precio"]))
+                crear_mueble(mueble)
+                creados += 1
 
         return {"mensaje": f"Se crearon {creados} muebles correctamente"}
     except Exception as e:

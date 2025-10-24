@@ -1,21 +1,23 @@
-# Use Node.js 20 Alpine as the base image
-FROM node:20-alpine
+# Imagen base estable con soporte completo de OpenSSL y npm
+FROM node:20-bullseye
 
-# Set the working directory in the container
+# Directorio de trabajo
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copiar solo archivos necesarios para instalar dependencias
 COPY package*.json ./
 
-# Install Angular CLI globally
-RUN npm install -g @angular/cli@16.2.16
-
-# Install project dependencies
+# Instalar dependencias del proyecto
 RUN npm install
 
-# Copy the rest of the application code
+# Instalar librerías adicionales (como xlsx)
+RUN npm install xlsx @types/xlsx
+
+# Copiar el resto del código
 COPY . .
 
-# Command to run the application
-CMD ["ng", "serve", "--host", "0.0.0.0", "--port", "4200"]
+# Exponer puerto (Angular usa 4200 por defecto)
+EXPOSE 4200
 
+# Comando por defecto
+CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200"]
