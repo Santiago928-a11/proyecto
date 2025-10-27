@@ -48,11 +48,11 @@ app.add_middleware(
 
 @app.get("/health/ping")
 def health_ping():
-    """Health check simple para verificar que la API responde."""
+    """Health check"""
     return respuesta_estandarizada(
         200,
         "éxito",
-        "Pong",
+        "Activo",
         "El servidor está activo y responde correctamente."
     )
 
@@ -190,34 +190,39 @@ def borrar_mueble(mueble_id: int):
 
 @app.post("/muebles/analizar_excel")
 async def analizar_excel(file: UploadFile = File(...)):
-    """Analiza un archivo Excel y devuelve las hojas válidas."""
+    """Analiza un archivo Excel y devuelve las hojas válidas junto con un preview de datos."""
     try:
         xls = pd.ExcelFile(file.file)
         columnas_req = {"nombre", "descripcion", "precio"}
         hojas_validas = []
+        hojas_preview = []
 
         for hoja in xls.sheet_names:
             df = pd.read_excel(xls, sheet_name=hoja)
             if columnas_req.issubset(df.columns) and not df.empty:
                 hojas_validas.append(hoja)
+                preview = df.head(10).to_dict(orient="records")
+                hojas_preview.append({"nombre": hoja, "datos": preview})
 
         if not hojas_validas:
             return respuesta_estandarizada(
                 400, "advertencia", "Sin hojas válidas",
-                "El archivo no contiene hojas validas."
+                "El archivo no contiene hojas válidas."
             )
 
         return respuesta_estandarizada(
             200, "éxito", "Análisis exitoso",
-            "Se encontraron hojas válidas para importar.",
-            datos={"hojas_validas": hojas_validas}
+            "Se encontraron hojas válidas.",
+            datos={"hojas_validas": hojas_validas, "hojas_preview": hojas_preview}
         )
+
     except Exception as e:
         return respuesta_estandarizada(
             500, "error", "Error al analizar Excel",
             "No se pudo procesar el archivo.",
             errores=str(e)
         )
+
 
 
 @app.post("/muebles/carga_masiva_hojas")

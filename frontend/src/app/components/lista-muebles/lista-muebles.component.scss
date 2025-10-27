@@ -137,7 +137,6 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-
 .mensaje {
   color: $color-primario;
   font-style: italic;
@@ -181,44 +180,62 @@ body {
       }
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      background-color: #fff;
-      border: 1px solid #ccc;
+    .hoja-preview {
+      margin-bottom: 35px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      background-color: #fefefe;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 
-      th, td {
-        padding: 8px 10px;
-        border: 1px solid #d0d0d0;
-        text-align: left;
-        font-size: 14px;
-        white-space: nowrap;
-      }
-
-      th {
-        background-color: $color-modal-header;
+      h3 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-size: 18px;
         color: #2c3e50;
-        font-weight: 600;
-        position: sticky;
-        top: 0;
-        z-index: 5;
       }
 
-      tr:nth-child(even) td {
-        background-color: #f9fbff;
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+
+        th, td {
+          padding: 8px 10px;
+          border: 1px solid #d0d0d0;
+          text-align: left;
+          font-size: 14px;
+          white-space: nowrap;
+        }
+
+        th {
+          background-color: $color-modal-header;
+          color: #2c3e50;
+          font-weight: 600;
+          position: sticky;
+          top: 15px; // ajustar según padding del modal
+          z-index: 10;
+        }
+
+        tr:nth-child(even) td {
+          background-color: #f9fbff;
+        }
+
+        tr:hover td {
+          background-color: #eef5ff;
+        }
       }
 
-      tr:hover td {
-        background-color: #eef5ff;
-      }
-    }
+      .btn-agregar {
+        background-color: $color-boton-agregar-modal;
 
-    .btn-agregar {
-      background-color: $color-boton-agregar-modal;
-
-      &:hover {
-        background-color: $color-boton-agregar-modal-hover;
+        &:hover {
+          background-color: $color-boton-agregar-modal-hover;
+        }
       }
     }
   }
@@ -301,22 +318,4 @@ canvas {
   max-width: 600px;
   margin: 0 auto;
   display: block;
-}
-
-.hoja-preview {
-  margin-bottom: 35px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  background-color: #fefefe;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-
-  h3 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    font-size: 18px;
-    color: #2c3e50;
-  }
 }
