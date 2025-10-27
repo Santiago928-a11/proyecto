@@ -28,6 +28,15 @@
 </div>
 
 <div class="card">
+  <h1>Cantidad de productos por rango de precios</h1>
+  <canvas baseChart
+    [data]="chartData"
+    [options]="chartOptions"
+    [type]="'doughnut'">
+  </canvas>
+</div>
+
+<div class="card">
   <h1>Carga Excel</h1>
   <input type="file" (change)="onFileSelect($event)" class="file-input" />
 
@@ -71,6 +80,16 @@
       style="margin-top: 1rem;">
       Subir hojas seleccionadas
     </button>
+  </div>
+</div>
+
+<div class="confirm-overlay" *ngIf="mostrarConfirmacion">
+  <div class="confirm-modal">
+    <p class="confirm-text">{{ mensajeConfirmacion }}</p>
+    <div class="confirm-buttons">
+      <button class="btn-aceptar" (click)="confirmarAccion()">Aceptar</button>
+      <button class="btn-cancelar" (click)="cerrarConfirmacion()">Cancelar</button>
+    </div>
   </div>
 </div>
 

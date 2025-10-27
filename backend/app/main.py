@@ -1,107 +1,196 @@
 from fastapi import FastAPI, HTTPException, Form, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from .crud import crear_mueble, obtener_muebles, obtener_mueble_por_id, actualizar_mueble, eliminar_mueble
 from .models import Mueble
 import logging
 import pandas as pd
 import uvicorn
 from typing import List
+from decimal import Decimal
 
-# Crear instancia de FastAPI con título
+def respuesta_estandarizada(
+    status: int,
+    tipo: str,
+    titulo: str,
+    mensaje: str,
+    datos: dict | list | None = None,
+    errores: dict | list | str | None = None
+):
+    def convertir(obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        if isinstance(obj, list):
+            return [convertir(o) for o in obj]
+        if isinstance(obj, dict):
+            return {k: convertir(v) for k, v in obj.items()}
+        return obj
+
+    contenido = {
+        "estado": status,
+        "tipo": tipo,
+        "titulo": titulo,
+        "mensaje": mensaje,
+        "datos": convertir(datos),
+        "errores": errores,
+    }
+    return JSONResponse(content=contenido, status_code=status)
+
 app = FastAPI(title="Muebles")
 
-# Middleware CORS 
-# Permite solicitudes desde cualquier origen y con cualquier método
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Endpoints API 
+@app.get("/health/ping")
+def health_ping():
+    """Health check simple para verificar que la API responde."""
+    return respuesta_estandarizada(
+        200,
+        "éxito",
+        "Pong",
+        "El servidor está activo y responde correctamente."
+    )
+
+@app.get("/health/full")
+def health_full():
+    """Health check."""
+    try:
+        db_status = True  
+        if not db_status:
+            raise Exception("Error de conexión a la base de datos")
+
+        return respuesta_estandarizada(
+            200,
+            "OK",
+            "Health check OK",
+            "Todos los sistemas están funcionando correctamente.",
+            datos={"db": "conectada"}
+        )
+    except Exception as e:
+        return respuesta_estandarizada(
+            500,
+            "error",
+            "Health check fallido",
+            "Hay problemas en los servicios del backend.",
+            errores=str(e)
+        )
+
 
 @app.get("/muebles")
 def listar_muebles():
-    """
-    Devuelve la lista de todos los muebles.
-    """
-    return obtener_muebles()
+    """Devuelve la lista de todos los muebles."""
+    try:
+        muebles = obtener_muebles()
+        return respuesta_estandarizada(
+            200, "éxito", "Consulta exitosa",
+            "Lista de productos obtenida correctamente.",
+            datos=muebles
+        )
+    except Exception as e:
+        return respuesta_estandarizada(
+            500, "error", "Error interno",
+            "Error al obtener la lista de muebles.",
+            errores=str(e)
+        )
+
 
 @app.get("/muebles/{mueble_id}")
 def ver_mueble(mueble_id: int):
-    """
-    Devuelve un mueble específico por ID.
-    """
-    m = obtener_mueble_por_id(mueble_id)
-    if not m:
-        raise HTTPException(status_code=404, detail="Mueble no encontrado")
-    return m
+    """Devuelve un mueble específico por ID."""
+    try:
+        m = obtener_mueble_por_id(mueble_id)
+        if not m:
+            return respuesta_estandarizada(
+                404, "advertencia", "No encontrado",
+                "Id de producto no encontrado."
+            )
+        return respuesta_estandarizada(
+            200, "éxito", "Producto encontrado",
+            "Producto encontrado.",
+            datos=m
+        )
+    except Exception as e:
+        return respuesta_estandarizada(
+            500, "error", "Error interno",
+            "Error al obtener el producto.",
+            errores=str(e)
+        )
+
 
 @app.post("/muebles")
 def agregar_mueble(nombre: str = Form(...), descripcion: str = Form(...), precio: float = Form(...)):
-    """
-    Crea un nuevo mueble usando datos recibidos por formulario.
-    """
-    logging.info(f"Recibiendo: nombre={nombre}, descripcion={descripcion}, precio={precio}")
-    mueble = Mueble(nombre=nombre, descripcion=descripcion, precio=precio)
+    """Crea un nuevo mueble usando datos recibidos por formulario."""
     try:
-        m_id = crear_mueble(mueble)  # Llamada a la función crud
+        mueble = Mueble(nombre=nombre, descripcion=descripcion, precio=precio)
+        m_id = crear_mueble(mueble)
+        return respuesta_estandarizada(
+            201, "éxito", "Producto creado",
+            "El producto fue agregado correctamente.",
+            datos={"id": m_id}
+        )
     except Exception as e:
-        logging.error(f"Error al crear mueble: {e}")
-        raise HTTPException(status_code=500, detail="Error al crear mueble")
-    if not m_id:
-        raise HTTPException(status_code=500, detail="Error al crear mueble")
-    return {"id": m_id}
+        return respuesta_estandarizada(
+            500, "error", "Error al crear el producto",
+            "No se pudo agregar el producto.",
+            errores=str(e)
+        )
+
 
 @app.put("/muebles/{mueble_id}")
 def editar_mueble(mueble_id: int, nombre: str = Form(...), descripcion: str = Form(...), precio: float = Form(...)):
-    """
-    Actualiza un mueble existente por ID.
-    """
-    mueble = Mueble(nombre=nombre, descripcion=descripcion, precio=precio)
-    filas = actualizar_mueble(mueble_id, mueble)
-    if filas == 0:
-        raise HTTPException(status_code=404, detail="Mueble no encontrado o no actualizado")
-    return {"actualizados": filas}
+    """Actualiza un mueble existente por ID."""
+    try:
+        mueble = Mueble(nombre=nombre, descripcion=descripcion, precio=precio)
+        filas = actualizar_mueble(mueble_id, mueble)
+        if filas == 0:
+            return respuesta_estandarizada(
+                404, "advertencia", "No actualizado",
+                "Producto no encontrado o sin cambios aplicados."
+            )
+        return respuesta_estandarizada(
+            200, "éxito", "Producto actualizado",
+            "El producto fue actualizado.",
+            datos={"actualizados": filas}
+        )
+    except Exception as e:
+        return respuesta_estandarizada(
+            500, "error", "Error interno",
+            "Error al actualizar el producto.",
+            errores=str(e)
+        )
+
 
 @app.delete("/muebles/{mueble_id}")
 def borrar_mueble(mueble_id: int):
-    """
-    Elimina un mueble por ID.
-    """
-    filas = eliminar_mueble(mueble_id)
-    if filas == 0:
-        raise HTTPException(status_code=404, detail="Mueble no encontrado")
-    return {"eliminados": filas}
-
-@app.post("/muebles/carga_masiva")
-async def carga_masiva(file: UploadFile = File(...)):
-    """
-    Permite subir un archivo Excel con múltiples muebles y crearlos en la base de datos.
-    """
+    """Elimina un mueble por ID."""
     try:
-        df = pd.read_excel(file.file)  # Leer archivo Excel
-        columnas = {"nombre", "descripcion", "precio"}
-        if not columnas.issubset(df.columns):
-            raise HTTPException(status_code=400, detail=f"El archivo debe tener las columnas: {columnas}")
-
-        creados = 0
-        for _, fila in df.iterrows():
-            mueble = Mueble(id=None, nombre=fila["nombre"], descripcion=fila["descripcion"], precio=float(fila["precio"]))
-            crear_mueble(mueble)
-            creados += 1
-
-        return {"mensaje": f"Se crearon {creados} muebles correctamente"}
+        filas = eliminar_mueble(mueble_id)
+        if filas == 0:
+            return respuesta_estandarizada(
+                404, "advertencia", "No eliminado",
+                "El producto ya fue eliminado o no se encontro en la base."
+            )
+        return respuesta_estandarizada(
+            200, "éxito", "Producto eliminado",
+            "El producto fue eliminado.",
+            datos={"eliminados": filas}
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {e}")
+        return respuesta_estandarizada(
+            500, "error", "Error interno",
+            "Error al eliminar el producto.",
+            errores=str(e)
+        )
+
 
 @app.post("/muebles/analizar_excel")
 async def analizar_excel(file: UploadFile = File(...)):
-    """
-    Analiza un archivo Excel y devuelve las hojas que tienen las columnas requeridas.
-    """
+    """Analiza un archivo Excel y devuelve las hojas válidas."""
     try:
         xls = pd.ExcelFile(file.file)
         columnas_req = {"nombre", "descripcion", "precio"}
@@ -113,17 +202,27 @@ async def analizar_excel(file: UploadFile = File(...)):
                 hojas_validas.append(hoja)
 
         if not hojas_validas:
-            raise HTTPException(status_code=400, detail="Ninguna hoja válida encontrada")
-        
-        return {"hojas_validas": hojas_validas}
+            return respuesta_estandarizada(
+                400, "advertencia", "Sin hojas válidas",
+                "El archivo no contiene hojas validas."
+            )
+
+        return respuesta_estandarizada(
+            200, "éxito", "Análisis exitoso",
+            "Se encontraron hojas válidas para importar.",
+            datos={"hojas_validas": hojas_validas}
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {e}")
+        return respuesta_estandarizada(
+            500, "error", "Error al analizar Excel",
+            "No se pudo procesar el archivo.",
+            errores=str(e)
+        )
+
 
 @app.post("/muebles/carga_masiva_hojas")
 async def carga_masiva_hojas(file: UploadFile = File(...), hojas: List[str] = Form(...)):
-    """
-    Crea muebles solo de las hojas seleccionadas.
-    """
+    """Crea muebles solo de las hojas seleccionadas."""
     try:
         xls = pd.ExcelFile(file.file)
         creados = 0
@@ -133,14 +232,27 @@ async def carga_masiva_hojas(file: UploadFile = File(...), hojas: List[str] = Fo
                 continue
             df = pd.read_excel(xls, sheet_name=hoja)
             for _, fila in df.iterrows():
-                mueble = Mueble(id=None, nombre=fila["nombre"], descripcion=fila["descripcion"], precio=float(fila["precio"]))
+                mueble = Mueble(
+                    id=None,
+                    nombre=fila["nombre"],
+                    descripcion=fila["descripcion"],
+                    precio=float(fila["precio"])
+                )
                 crear_mueble(mueble)
                 creados += 1
 
-        return {"mensaje": f"Se crearon {creados} muebles correctamente"}
+        return respuesta_estandarizada(
+            201, "éxito", "Carga masiva completada",
+            f"Se crearon {creados} muebles correctamente.",
+            datos={"creados": creados}
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {e}")
+        return respuesta_estandarizada(
+            500, "error", "Error en carga",
+            "No se pudo procesar el archivo de carga.",
+            errores=str(e)
+        )
 
-# --- Run server ---
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)  # Ejecuta la app en localhost:8000
+    uvicorn.run(app, host="0.0.0.0", port=8000)

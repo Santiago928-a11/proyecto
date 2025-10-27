@@ -1,23 +1,26 @@
-# Imagen base estable con soporte completo de OpenSSL y npm
-FROM node:20-bullseye
+FROM node:18-alpine
 
-# Directorio de trabajo
 WORKDIR /app
 
-# Copiar solo archivos necesarios para instalar dependencias
 COPY package*.json ./
 
-# Instalar dependencias del proyecto
-RUN npm install
+ENV NODE_OPTIONS=--openssl-legacy-provider
 
-# Instalar librerías adicionales (como xlsx)
-RUN npm install xlsx @types/xlsx
+RUN apk add --no-cache \
+    bash \
+    curl \
+    git \
+    python3 \
+    make \
+    g++
 
-# Copiar el resto del código
+RUN npm config set strict-ssl true
+RUN npm config set registry https://registry.npmjs.org/
+
+RUN npm install --legacy-peer-deps xlsx ng2-charts@4.1.1 chart.js@4.4.0
+
 COPY . .
 
-# Exponer puerto (Angular usa 4200 por defecto)
 EXPOSE 4200
 
-# Comando por defecto
-CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200"]
+CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--disable-host-check", "--poll", "2000"]

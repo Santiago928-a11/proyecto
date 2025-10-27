@@ -1,0 +1,322 @@
+$color-primario: #3498db;
+$color-primario-hover: #2980b9;
+$color-secundario: #e74c3c;
+$color-secundario-hover: #c0392b;
+$color-exito: #27ae60;
+$color-fondo: #f5f7fa;
+$color-texto: #333;
+$color-modal-fondo: rgba(0,0,0,0.5);
+$color-modal-blur: blur(4px);
+$color-tabla-header: #f2f6fa;
+$color-tabla-hover: #f9fbfd;
+$color-modal-header: #ebf4ff;
+$color-boton-agregar-modal: #2ecc71;
+$color-boton-agregar-modal-hover: #27ae60;
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: $color-fondo;
+  color: $color-texto;
+}
+
+.card {
+  background-color: #fff;
+  padding: 25px;
+  margin-bottom: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
+
+  h1 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #2c3e50;
+    font-size: 24px;
+    text-align: center;
+  }
+}
+
+.btn-agregar {
+  display: inline-block;
+  background-color: $color-primario;
+  color: white;
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  transition: background-color 0.3s, transform 0.1s;
+  font-weight: 500;
+
+  &:hover {
+    background-color: $color-primario-hover;
+    transform: scale(1.03);
+  }
+}
+
+.tabla-muebles {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+
+  th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  th {
+    background-color: $color-tabla-header;
+    font-weight: 600;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  tr:hover {
+    background-color: $color-tabla-hover;
+  }
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+
+  .btn-editar, .btn-borrar {
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    font-size: 14px;
+    border: none;
+    color: white;
+    text-decoration: none;
+  }
+
+  .btn-editar {
+    background-color: $color-primario;
+
+    &:hover {
+      background-color: $color-primario-hover;
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+
+  .btn-borrar {
+    background-color: $color-secundario;
+
+    &:hover {
+      background-color: $color-secundario-hover;
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+}
+
+.file-input {
+  margin-bottom: 15px;
+}
+
+.progreso {
+  position: fixed;  
+  top: 10px;      
+  left: 50%;        
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  background-color: $color-exito;
+  color: white;
+  font-weight: bold;
+  border-radius: 5px;
+  z-index: 1100;   
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+
+.mensaje {
+  color: $color-primario;
+  font-style: italic;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: $color-modal-fondo;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: $color-modal-blur;
+
+  .modal-contenido {
+    position: relative;
+    background-color: white;
+    padding: 25px 35px;
+    border-radius: 10px;
+    width: 85%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    animation: aparecer 0.2s ease-in-out;
+
+    .cerrar {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #555;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #000;
+      }
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+
+      th, td {
+        padding: 8px 10px;
+        border: 1px solid #d0d0d0;
+        text-align: left;
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      th {
+        background-color: $color-modal-header;
+        color: #2c3e50;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+
+      tr:nth-child(even) td {
+        background-color: #f9fbff;
+      }
+
+      tr:hover td {
+        background-color: #eef5ff;
+      }
+    }
+
+    .btn-agregar {
+      background-color: $color-boton-agregar-modal;
+
+      &:hover {
+        background-color: $color-boton-agregar-modal-hover;
+      }
+    }
+  }
+}
+
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1010;
+
+  .confirm-modal {
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    text-align: center;
+    animation: fadeIn 0.2s ease-in-out;
+
+    .confirm-text {
+      font-size: 16px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+
+      .btn-aceptar {
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        background-color: #007bff;
+        color: white;
+
+        &:hover {
+          background-color: #0069d9;
+        }
+      }
+
+      .btn-cancelar {
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        background-color: #ccc;
+        color: #333;
+
+        &:hover {
+          background-color: #b3b3b3;
+        }
+      }
+    }
+  }
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+canvas {
+  max-width: 600px;
+  margin: 0 auto;
+  display: block;
+}
+
+.hoja-preview {
+  margin-bottom: 35px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #fefefe;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #2c3e50;
+  }
+}

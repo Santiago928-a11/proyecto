@@ -5,16 +5,14 @@ import { MueblesService, Mueble } from '../../services/muebles.service';
 @Component({
   selector: 'app-crear-mueble',
   templateUrl: './crear-mueble.component.html',
-  styleUrls: ['./crear-mueble.component.css']
+  styleUrls: ['./crear-mueble.component.scss']
 })
 export class CrearMuebleComponent {
   mensaje = '';
   mueble: Mueble = { nombre: '', descripcion: '', precio: 0 };
 
-  // Constructor: inyecta el servicio de muebles y el enrutador para manejar la navegación.
   constructor(private mueblesService: MueblesService, private router: Router) {}
 
-  // Crea un nuevo mueble enviando los datos del formulario al backend.
   crearMueble(form: any) {
     if (form.invalid) return; 
 

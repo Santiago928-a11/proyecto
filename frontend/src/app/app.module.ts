@@ -1,32 +1,33 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms'; 
-import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { NgChartsModule } from 'ng2-charts';
+import { HttpClientModule } from '@angular/common/http'; // ✅ agregar
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ListaMueblesComponent } from './components/lista-muebles/lista-muebles.component';
 import { CrearMuebleComponent } from './components/crear-mueble/crear-mueble.component';
 import { EditarMuebleComponent } from './components/editar-mueble/editar-mueble.component';
+import { ListaMueblesComponent } from './components/lista-muebles/lista-muebles.component';
 
-// Módulo principal de la aplicación Angular.
 @NgModule({
-  // Declaraciones: lista de componentes, directivas y pipes que pertenecen a este módulo.
   declarations: [
     AppComponent,
-    ListaMueblesComponent,
     CrearMuebleComponent,
-    EditarMuebleComponent
+    EditarMuebleComponent,
+    ListaMueblesComponent
   ],
-  // Imports: otros módulos que este módulo necesita para funcionar.
   imports: [
-    BrowserModule,      
-    AppRoutingModule,  
-    FormsModule,       
-    HttpClientModule    
+    BrowserModule,
+    CommonModule,
+    FormsModule,
+    AppRoutingModule,
+    NgChartsModule,
+    HttpClientModule 
   ],
-  // Bootstrap: componente raíz que se carga al iniciar la aplicación.
+  providers: [],
   bootstrap: [AppComponent]
 })
-// Clase principal
 export class AppModule { }

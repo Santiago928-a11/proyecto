@@ -1,6 +1,11 @@
 {
   "dependencies": {
     "@types/xlsx": "^0.0.36",
+    "chart.js": "^4.5.1",
+    "ng2-charts": "^8.0.0",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/chart.js": "^4.0.1"
   }
 }

@@ -1,0 +1,123 @@
+// Variables
+$body-bg: #f4f4f4;
+$text-color: #333;
+$card-bg: rgba(231, 231, 231, 0.82);
+$shadow-color: rgba(0,0,0,0.1);
+$primary-color: #3498db;
+$primary-hover: #2980b9;
+$secondary-color: #2ecc71;
+$secondary-hover: #27ae60;
+$disabled-color: #aaa;
+$border-color: #ddd;
+$border-radius: 5px;
+$font-size: 14px;
+$btn-font-size: 16px;
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: $body-bg;
+  color: $text-color;
+}
+
+.card {
+  background: $card-bg;
+  width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px $shadow-color;
+
+  h1 {
+    color: #2c3e50;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #2c3e50;
+      font-weight: bold;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid $border-color;
+      border-radius: $border-radius;
+      font-size: $font-size;
+      transition: border-color 0.3s;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+      }
+    }
+
+    textarea {
+      height: 19px;
+      resize: vertical;
+    }
+
+    .btn-crear, .btn-volver {
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: $border-radius;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      font-size: $btn-font-size;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 10px;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(1px);
+      }
+    }
+
+    .btn-crear {
+      width: 100%;
+      background-color: $primary-color;
+
+      &:hover {
+        background-color: $primary-hover;
+      }
+
+      &:disabled {
+        background-color: $disabled-color;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-volver {
+      background-color: $secondary-color;
+      margin-top: 15px;
+
+      &:hover {
+        background-color: $secondary-hover;
+      }
+    }
+
+    .mensaje {
+      margin-top: 15px;
+      color: $primary-color;
+      font-style: italic;
+      text-align: center;
+    }
+  }
+}

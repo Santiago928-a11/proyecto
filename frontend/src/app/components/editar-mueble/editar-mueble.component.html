@@ -1,4 +1,4 @@
-<div class="card">
+<div class="card" *ngIf="mueble">
   <h1>Editar Mueble</h1>
   <form #f="ngForm" (ngSubmit)="actualizarMueble(f)">
     <label>Nombre:</label>
@@ -16,5 +16,6 @@
     <a routerLink="/">Volver</a>
   </form>
 </div>
+
 
 
