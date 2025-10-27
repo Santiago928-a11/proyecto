@@ -17,6 +17,7 @@ RUN apk add --no-cache \
 RUN npm config set strict-ssl true
 RUN npm config set registry https://registry.npmjs.org/
 
+RUN npm install -g @angular/cli@16
 RUN npm install --legacy-peer-deps xlsx ng2-charts@4.1.1 chart.js@4.4.0
 
 COPY . .

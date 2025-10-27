@@ -40,7 +40,7 @@ export class ListaMueblesComponent implements OnInit {
     responsive: true,
     plugins: {
       legend: { position: 'bottom' },
-      title: { display: true, text: 'Distribución de precios de los muebles' }
+      title: { display: true, text: 'Cantidad de muebles por rango de precios' }
     }
   };
 
@@ -68,11 +68,12 @@ export class ListaMueblesComponent implements OnInit {
       if (precio <= 100000) categorias[0]++;
       else if (precio <= 200000) categorias[1]++;
       else if (precio <= 300000) categorias[2]++;
-      else if (precio <= 400000) categorias[3]++;
+      else categorias[3]++; 
     }
 
     this.chartData = {
       ...this.chartData,
+      labels: ['≤ 100.000', '100.001–200.000', '200.001–300.000', '≥ 300.001'], 
       datasets: [{ ...this.chartData.datasets[0], data: categorias }]
     };
   }
@@ -117,7 +118,7 @@ export class ListaMueblesComponent implements OnInit {
             this.hojasSeleccionadas = [this.hojasDisponibles[0]];
             this.subirHojasSeleccionadas();
           } else {
-            this.mostrarModal = true; // mostrar modal con preview
+            this.mostrarModal = true; 
           }
         },
         error: () => (this.mensaje = 'Error al analizar el archivo')

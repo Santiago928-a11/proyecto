@@ -49,12 +49,22 @@ app.add_middleware(
 @app.get("/health/ping")
 def health_ping():
     """Health check"""
-    return respuesta_estandarizada(
-        200,
-        "éxito",
-        "Activo",
-        "El servidor está activo y responde correctamente."
-    )
+    try:
+        return respuesta_estandarizada(
+            200,
+            "éxito",
+            "Activo",
+            "El servidor está activo y responde correctamente."
+        )
+    except Exception as e:
+        return respuesta_estandarizada(
+            500, "error", "Error interno",
+            "Error al verificar estado del servidor.",
+            errores=str(e)
+        )
+    finally:
+        logging.info("Endpoint /health/ping ejecutado.")
+
 
 @app.get("/health/full")
 def health_full():
@@ -79,6 +89,8 @@ def health_full():
             "Hay problemas en los servicios del backend.",
             errores=str(e)
         )
+    finally:
+        logging.info("Endpoint /health/full ejecutado.")
 
 
 @app.get("/muebles")
@@ -97,6 +109,8 @@ def listar_muebles():
             "Error al obtener la lista de muebles.",
             errores=str(e)
         )
+    finally:
+        logging.info("Endpoint /muebles ejecutado.")
 
 
 @app.get("/muebles/{mueble_id}")
@@ -120,6 +134,8 @@ def ver_mueble(mueble_id: int):
             "Error al obtener el producto.",
             errores=str(e)
         )
+    finally:
+        logging.info(f"Endpoint /muebles/{mueble_id} ejecutado.")
 
 
 @app.post("/muebles")
@@ -139,6 +155,8 @@ def agregar_mueble(nombre: str = Form(...), descripcion: str = Form(...), precio
             "No se pudo agregar el producto.",
             errores=str(e)
         )
+    finally:
+        logging.info("Endpoint POST /muebles ejecutado.")
 
 
 @app.put("/muebles/{mueble_id}")
@@ -163,6 +181,8 @@ def editar_mueble(mueble_id: int, nombre: str = Form(...), descripcion: str = Fo
             "Error al actualizar el producto.",
             errores=str(e)
         )
+    finally:
+        logging.info(f"Endpoint PUT /muebles/{mueble_id} ejecutado.")
 
 
 @app.delete("/muebles/{mueble_id}")
@@ -173,7 +193,7 @@ def borrar_mueble(mueble_id: int):
         if filas == 0:
             return respuesta_estandarizada(
                 404, "advertencia", "No eliminado",
-                "El producto ya fue eliminado o no se encontro en la base."
+                "El producto ya fue eliminado o no se encontró en la base."
             )
         return respuesta_estandarizada(
             200, "éxito", "Producto eliminado",
@@ -186,6 +206,8 @@ def borrar_mueble(mueble_id: int):
             "Error al eliminar el producto.",
             errores=str(e)
         )
+    finally:
+        logging.info(f"Endpoint DELETE /muebles/{mueble_id} ejecutado.")
 
 
 @app.post("/muebles/analizar_excel")
@@ -222,7 +244,8 @@ async def analizar_excel(file: UploadFile = File(...)):
             "No se pudo procesar el archivo.",
             errores=str(e)
         )
-
+    finally:
+        logging.info("Endpoint POST /muebles/analizar_excel ejecutado.")
 
 
 @app.post("/muebles/carga_masiva_hojas")
@@ -257,7 +280,10 @@ async def carga_masiva_hojas(file: UploadFile = File(...), hojas: List[str] = Fo
             "No se pudo procesar el archivo de carga.",
             errores=str(e)
         )
+    finally:
+        logging.info("Endpoint POST /muebles/carga_masiva_hojas ejecutado.")
 
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
